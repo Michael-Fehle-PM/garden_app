@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Garden — Zone 7 Care Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#1c1c18;--ink2:#5a5a4e;--ink3:#9a9a88;
+  --page:#f7f5ef;--cream:#efecea;--cream2:#e6e2d8;--white:#ffffff;
+  --moss:#4a6741;--moss-l:#dde8d5;--moss-ll:#f0f5ec;
+  --amber:#b07d2a;--amber-l:#fdf0d5;
+  --rose:#8a3a4a;--blue:#2e5c8a;--blue-l:#e3edf7;
+  --warn:#7a4a10;--warn-l:#fdf0d5;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+  --r:7px;--r-lg:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Jost',sans-serif;background:var(--page);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.65;}
+.wrap{max-width:860px;margin:0 auto;padding:0 1.5rem 5rem;}
+
+header{padding:2.5rem 0 1.75rem;border-bottom:1px solid var(--border2);margin-bottom:2.5rem;display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+h1{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:400;letter-spacing:-0.5px;line-height:1;}
+h1 em{font-style:italic;color:var(--moss);}
+.tagline{font-size:12px;color:var(--ink3);letter-spacing:0.4px;text-transform:uppercase;margin-top:4px;}
+.badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;letter-spacing:0.2px;}
+.badge-green{background:var(--moss-ll);color:var(--moss);border:0.5px solid #c2d9b8;}
+.badge-amber{background:var(--amber-l);color:var(--amber);border:0.5px solid #e8c87a;}
+
+section{margin-bottom:2.75rem;}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;letter-spacing:0.2px;margin-bottom:1.1rem;padding-bottom:7px;border-bottom:0.5px solid var(--border2);display:flex;align-items:center;gap:8px;}
+
+.plant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;}
+.plant-btn{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--white);border:0.5px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all 0.15s;text-align:left;font-family:'Jost',sans-serif;color:var(--ink);width:100%;}
+.plant-btn:hover{border-color:var(--border2);background:var(--cream);}
+.plant-btn.active{border-color:var(--moss);background:var(--moss-ll);box-shadow:inset 0 0 0 1px var(--moss);}
+.plant-dot{width:30px;height:30px;border-radius:50%;background:var(--moss-ll);border:0.5px solid #c2d9b8;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.plant-info{flex:1;min-width:0;}
+.plant-common{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.plant-latin{font-size:11px;color:var(--ink3);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+#carePanel{margin-top:1.5rem;background:var(--white);border:0.5px solid var(--border2);border-radius:var(--r-lg);overflow:hidden;animation:rise 0.2s ease;}
+@keyframes rise{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+.care-head{padding:14px 20px;background:var(--moss-ll);border-bottom:0.5px solid #c2d9b8;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.care-head-name{font-family:'Cormorant Garamond',serif;font-size:21px;font-style:italic;font-weight:400;}
+.care-head-latin{font-size:12px;color:var(--moss);font-style:italic;}
+.care-body{padding:18px 20px;}
+.care-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:560px){.care-grid{grid-template-columns:1fr;}}
+.care-card{background:var(--cream);border-radius:var(--r);padding:13px 15px;border-left:3px solid transparent;}
+.c-freq{border-left-color:#5b9bd5;}
+.c-water{border-left-color:var(--blue);}
+.c-prune{border-left-color:var(--moss);}
+.c-hard{border-left-color:var(--amber);}
+.c-notes{border-left-color:var(--rose);grid-column:1/-1;}
+.care-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.8px;color:var(--ink3);margin-bottom:5px;}
+.care-val{font-size:13px;line-height:1.65;color:var(--ink);}
+
+/* Source citation */
+.care-source{margin-top:8px;padding-top:7px;border-top:0.5px solid var(--border2);font-size:11px;color:var(--ink3);line-height:1.5;}
+.care-source a{color:var(--moss);text-decoration:none;border-bottom:0.5px solid #c2d9b8;}
+.care-source a:hover{color:var(--ink2);}
+.src-label{font-weight:500;margin-right:3px;}
+
+.season-strip{display:flex;gap:4px;margin-top:14px;flex-wrap:wrap;}
+.month-chip{font-size:10px;padding:3px 8px;border-radius:4px;font-weight:500;background:var(--cream2);color:var(--ink3);border:0.5px solid var(--border);}
+.month-chip.prune-m{background:var(--moss-ll);color:var(--moss);border-color:#c2d9b8;}
+.month-chip.water-m{background:var(--blue-l);color:var(--blue);border-color:#b0cce8;}
+.month-chip.prot-m{background:var(--amber-l);color:var(--amber);border-color:#e8c87a;}
+.strip-legend{display:flex;gap:14px;margin-top:7px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3);}
+.legend-dot{width:9px;height:9px;border-radius:2px;}
+
+.weather-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.weather-top{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;flex-wrap:wrap;gap:10px;}
+.w-cond{font-size:15px;font-weight:500;}
+.w-sub{font-size:12px;color:var(--ink3);margin-top:2px;}
+.weather-stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:0.5px solid var(--border);}
+.w-stat{padding:14px 10px;text-align:center;border-right:0.5px solid var(--border);}
+.w-stat:last-child{border-right:none;}
+.w-lbl{font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink3);margin-bottom:3px;}
+.w-val{font-size:24px;font-weight:300;line-height:1.1;}
+.w-unit{font-size:11px;color:var(--ink3);}
+.w-alert{margin:10px 20px 14px;padding:11px 15px;border-radius:var(--r);font-size:13px;line-height:1.55;display:flex;gap:9px;align-items:flex-start;}
+.w-alert.warn{background:var(--warn-l);color:var(--warn);border:0.5px solid #e8c87a;}
+.w-alert.ok{background:var(--moss-ll);color:var(--moss);border:0.5px solid #c2d9b8;}
+.affected-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.aff-chip{font-size:11px;padding:2px 9px;border-radius:4px;background:rgba(255,255,255,0.55);border:0.5px solid currentColor;opacity:0.85;}
+
+.log-box{background:var(--cream);border-radius:var(--r);padding:12px 16px;margin-top:10px;}
+.log-title{font-size:10px;text-transform:uppercase;letter-spacing:0.7px;color:var(--ink3);font-weight:500;margin-bottom:8px;}
+.log-row{font-size:12px;padding:4px 0;border-bottom:0.5px solid var(--border);line-height:1.5;color:var(--ink2);}
+.log-row:last-child{border-bottom:none;}
+.log-row.lwarn{color:var(--warn);}
+.log-row.lok{color:var(--moss);}
+
+.email-box{background:var(--white);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;}
+.field-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;}
+.field-row label{font-size:13px;color:var(--ink2);min-width:55px;}
+.field-row input{flex:1;padding:8px 13px;font-size:13px;font-family:'Jost',sans-serif;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--page);color:var(--ink);outline:none;}
+.field-row input:focus{border-color:var(--moss);}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:13px;font-weight:500;font-family:'Jost',sans-serif;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--white);color:var(--ink);cursor:pointer;transition:background 0.12s,transform 0.1s;white-space:nowrap;}
+.btn:hover{background:var(--cream);}
+.btn:active{transform:scale(0.98);}
+.btn-primary{background:var(--moss);color:var(--moss-ll);border-color:var(--moss);}
+.btn-primary:hover{background:#39512f;border-color:#39512f;color:var(--moss-ll);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+#emailStatus{font-size:12px;color:var(--ink3);margin-top:10px;line-height:1.7;}
+#emailStatus.ok{color:var(--moss);}
+#emailStatus.err{color:var(--rose);}
+.email-preview{background:var(--cream);border-radius:var(--r);padding:12px 15px;font-size:12px;line-height:1.75;margin-top:8px;white-space:pre-wrap;border-left:3px solid var(--amber);}
+.hint{font-size:12px;color:var(--ink3);margin-top:10px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>My <em>Garden</em></h1>
+    <div class="tagline">Zone 7 &middot; Potted plant care tracker</div>
+  </div>
+  <div class="badges">
+    <span class="badge badge-green">USDA Zone 7</span>
+    <span class="badge badge-amber">All plants in pots</span>
+  </div>
+</header>
+
+<section>
+  <div class="sec-title">&#127807; My plants</div>
+  <div class="plant-grid" id="plantGrid"></div>
+  <div id="carePanel" style="display:none;"></div>
+</section>
+
+<section>
+  <div class="sec-title">&#127748; Weather monitor
+    <button class="btn btn-sm" style="margin-left:auto;" onclick="checkWeather()">&#8635; Refresh</button>
+  </div>
+  <div class="weather-card">
+    <div class="weather-top">
+      <div>
+        <div class="w-cond" id="wCond">Loading forecast&#8230;</div>
+        <div class="w-sub" id="wDate">Upper West Side, NY (ZIP 10025)</div>
+      </div>
+    </div>
+    <div class="weather-stats">
+      <div class="w-stat"><div class="w-lbl">Temp</div><div class="w-val" id="wT">&#8212;</div><div class="w-unit">&deg;F</div></div>
+      <div class="w-stat"><div class="w-lbl">Humidity</div><div class="w-val" id="wH">&#8212;</div><div class="w-unit">%</div></div>
+      <div class="w-stat"><div class="w-lbl">Rain</div><div class="w-val" id="wR">&#8212;</div><div class="w-unit">in</div></div>
+      <div class="w-stat"><div class="w-lbl">UV index</div><div class="w-val" id="wUV">&#8212;</div><div class="w-unit">/ 11</div></div>
+    </div>
+    <div id="wAlert"></div>
+  </div>
+  <div id="logWrap" style="display:none;">
+    <div class="log-box">
+      <div class="log-title">Daily check log</div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-title">&#9993; Email alerts</div>
+  <div class="email-box">
+    <div class="field-row">
+      <label>Email</label>
+      <input type="email" id="emailInput" placeholder="you@example.com"/>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-sm" onclick="testAlert()">Send test alert</button>
+      <button class="btn btn-sm" onclick="simulateDaily()">Simulate daily check</button>
+    </div>
+    <div id="emailStatus"></div>
+    <p class="hint">In a real deployment, connect a mail service (SendGrid, Mailgun, etc.) and a daily cron job to automatically deliver alerts when conditions require extra watering or frost protection.</p>
+  </div>
+</section>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────
+// PLANT DATABASE  — All 19 plants, Zone 7, pots, with sources
+//
+// Sources key:
+//   RHS   = Royal Horticultural Society (rhs.org.uk)
+//   NCSU  = NC State Extension (plants.ces.ncsu.edu / extension.ncsu.edu)
+//   AHS   = American Horticultural Society
+//   MISS  = Mississippi State Extension (extension.msstate.edu)
+//   MBG   = Missouri Botanical Garden Plant Finder (missouribotanicalgarden.org)
+//   Dirr  = Dirr's Encyclopedia of Trees and Shrubs (Dirr, 2011)
+//   Armitage = Armitage's Garden Perennials (Armitage, 2000)
+//   Clematis = International Clematis Society (clematisinternational.com)
+//   NAL   = USDA National Agricultural Library / PLANTS database
+// ─────────────────────────────────────────────────────────────────
+const PLANTS = [
+  // ── SHRUBS ───────────────────────────────────────────────────
+  {
+    id:'mock-orange', common:'Double Mock Orange', latin:'Philadelphus \u00d7 virginalis', emoji:'\uD83E\uDD0D',
+    water_frequency:'Spring\u2013summer: every 3\u20134 days, or when the top 2\u201d of soil is dry. Autumn: reduce to once a week. Winter: water lightly every 2\u20133 weeks when soil is not frozen \u2014 pots dry out faster than ground even in cold weather.',
+    water_src:'RHS, <a href="https://www.rhs.org.uk/plants/13280/philadelphus-x-virginalis/details" target="_blank">rhs.org.uk/plants/philadelphus</a>; MBG Plant Finder',
+    water_amount:'Water deeply until it freely drains from the bottom. For a 15\u201320 gallon pot, roughly 1\u20132 gallons per session. Never let the pot sit in standing water.',
+    amt_src:'RHS Watering guidance; <a href="https://extension.msstate.edu/publications/publications/growing-shrubs-containers" target="_blank">MSU Extension: Shrubs in Containers</a>',
+    prune_season:'Immediately after flowering \u2014 late June through July. Never prune before bloom or you will remove flower buds set the previous year.',
+    prune_src:'RHS: <a href="https://www.rhs.org.uk/plants/philadelphus/pruning-guide" target="_blank">Philadelphus pruning guide</a>; Dirr (2011) p.621',
+    prune_intensity:'Moderate to hard. Remove up to one-third of the oldest canes at the base each year. Shorten remaining stems by one-quarter to shape. Reduce the root ball every 2\u20133 years in a pot.',
+    intensity_src:'RHS Pruning Group 2 guidance; Dirr\'s Encyclopedia of Trees and Shrubs (2011)',
+    notes:'Wrap the container with burlap or bubble wrap in December\u2013February to insulate roots from freeze-thaw cycles. Use a well-draining mix (50% potting soil, 50% perlite) and a pot no smaller than 15 gallons. Pot-grown Mock Orange blooms best when slightly root-bound \u2014 repot only when rootbound for more than two years.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/philadelphus-x-virginalis/" target="_blank">NCSU Plant Toolbox</a>; RHS container growing guide',
+    prune_months:[6,7], protect_months:[12,1,2],
+  },
+  {
+    id:'japanese-maple', common:'Red Dragon Japanese Maple', latin:'Acer palmatum \u2018Red Dragon\u2019', emoji:'\uD83C\uDF41',
+    water_frequency:'Spring\u2013summer: every 2\u20133 days during hot spells, every 4\u20135 days otherwise. This weeping cultivar is especially sensitive to drought stress in a pot. Autumn: taper to once a week as leaves drop. Winter: once every 2\u20133 weeks if soil is not frozen.',
+    water_src:'<a href="https://www.rhs.org.uk/plants/acer-palmatum/growing-guide" target="_blank">RHS: Acer palmatum growing guide</a>; <a href="https://plants.ces.ncsu.edu/plants/acer-palmatum/" target="_blank">NCSU Plant Toolbox</a>',
+    water_amount:'1 to 1.5 gallons for a 15-gallon pot, until water runs clear from drainage holes. Avoid wetting foliage; water at the base.',
+    amt_src:'RHS Container Growing; MBG Plant Finder: <em>Acer palmatum</em>',
+    prune_season:'Late winter to early spring, just before buds break \u2014 February into early March. Light tidying of dead or crossing branches in June is acceptable.',
+    prune_src:'RHS: <a href="https://www.rhs.org.uk/plants/acer/pruning-guide" target="_blank">Acer pruning guide</a> (Pruning Group 1)',
+    prune_intensity:'Light only. Red Dragon is slow-growing and weeping; heavy pruning destroys the natural form. Remove only dead, diseased, or crossing branches. Never remove more than 10\u201315% of the canopy in one year.',
+    intensity_src:'Dirr\'s Encyclopedia of Trees and Shrubs (2011), p.32; RHS Pruning Group 1',
+    notes:'Root protection is the top priority in zone 7 pots. Move the pot against a south-facing wall or into an unheated garage when temperatures drop below 10\u00b0F (-12\u00b0C). Mulch the pot surface with 2\u20133\u201d of bark chips year-round. Avoid high-nitrogen fertiliser in late summer \u2014 it promotes tender growth killed by frost.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/acer-palmatum/" target="_blank">NCSU Plant Toolbox: Acer palmatum</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=279086" target="_blank">MBG Plant Finder</a>',
+    prune_months:[2,3], protect_months:[12,1,2], water_more_months:[6,7,8],
+  },
+  {
+    id:'knockout-rose', common:'Double Knock Out Rose', latin:'Rosa \u2018Radtko\u2019', emoji:'\uD83C\uDF39',
+    water_frequency:'Spring through frost: every 2\u20133 days in summer heat, every 5\u20137 days in cooler weather. Check soil at 2\u201d depth before each watering \u2014 in a pot there is no ground buffer.',
+    water_src:'<a href="https://www.theknockoutrose.com/care-maintenance/" target="_blank">Star Roses: Knock Out Care Guide</a>; <a href="https://extension.msstate.edu" target="_blank">MSU Extension: Roses in the Landscape</a>',
+    water_amount:'1\u20132 gallons per session for a 15-gallon pot. Always water at the base, never overhead, to prevent black spot and powdery mildew.',
+    amt_src:'Star Roses & Plants official care guide; RHS Rose watering guidance',
+    prune_season:'Primary pruning: late February to mid-March, just as forsythia blooms locally. Deadhead and lightly shape throughout the season. A cut-back by one-third in early July refreshes the plant for strong autumn flowering.',
+    prune_src:'<a href="https://www.theknockoutrose.com/care-maintenance/" target="_blank">Star Roses: Knock Out pruning guidance</a>; <a href="https://extension.msstate.edu/publications/publications/growing-roses-mississippi" target="_blank">MSU Extension: Growing Roses</a>',
+    prune_intensity:'Moderate to hard in late winter: cut the entire shrub back by one-half to two-thirds, to about 12\u201318 inches. In July cut back by one-third. Always cut to an outward-facing bud at a 45\u00b0 angle.',
+    intensity_src:'Star Roses & Plants official Knock Out Rose care guide (2024)',
+    notes:'In a pot, Knock Out roses are susceptible to crown freeze in zone 7 winters. After the first hard frost, mound the crown with shredded leaves or straw and wrap the pot. Use a high-quality slow-release rose fertiliser in spring and again in early July. Repot into fresh mix every 2 years.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/rosa-radtko/" target="_blank">NCSU Plant Toolbox: Rosa</a>; MSU Extension container rose guidance',
+    prune_months:[2,3,7], protect_months:[12,1,2], water_more_months:[6,7,8],
+  },
+  {
+    id:'abelia', common:'Abelia Mucho Gusto', latin:'Abelia \u00d7grandiflora \u2018Mucho Gusto\u2019', emoji:'\uD83C\uDF38',
+    water_frequency:'Spring\u2013summer: every 4\u20135 days; every 2\u20133 days during heat waves above 90\u00b0F. Autumn: every 7\u201310 days. Winter: once every 2\u20133 weeks \u2014 Mucho Gusto is semi-evergreen and still transpires slowly in mild winters.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/abelia-x-grandiflora/" target="_blank">NCSU Plant Toolbox: Abelia</a>; MBG Plant Finder',
+    water_amount:'About 1 gallon per session for a 10-gallon pot. Abelia tolerates brief dry spells better than wet feet; ensure excellent drainage.',
+    amt_src:'NCSU Extension: Abelia growing guide; RHS Container Watering',
+    prune_season:'Early spring (March) for any winter damage. Light shaping after each main flush of bloom \u2014 roughly late May and again in August. Avoid hard late-summer pruning.',
+    prune_src:'RHS: <a href="https://www.rhs.org.uk/plants/abelia/pruning-guide" target="_blank">Abelia pruning guide</a> (Pruning Group 9)',
+    prune_intensity:'Light. Mucho Gusto is naturally compact. Remove dead or damaged stems in March; tip-prune lightly after blooms fade. Hard renovation (down to 6\u201d) only every 3\u20134 years if leggy, in early March only.',
+    intensity_src:'RHS Pruning Group 9; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=261808" target="_blank">MBG Plant Finder: Abelia</a>',
+    notes:'Hardy to zone 5 with protection, so zone 7 pots are manageable. Wrap the container in late November. Variegated foliage will scorch in afternoon sun during zone 7 summers \u2014 site for morning sun and afternoon shade. Feed with slow-release balanced fertiliser in April; a second light feed in June maintains vivid leaf colour.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/abelia-x-grandiflora/" target="_blank">NCSU Plant Toolbox: Abelia \u00d7grandiflora</a>',
+    prune_months:[3,5,8], protect_months:[11,12,1,2],
+  },
+  {
+    id:'weigela', common:'Weigela My Monet Purple Effect', latin:'Weigela florida \u2018My Monet Purple Effect\u2019', emoji:'\uD83D\uDC9C',
+    water_frequency:'Spring\u2013summer: every 3\u20135 days. During flowering (May\u2013June), keep consistently moist. Autumn: every 7 days. Winter: once every 2\u20133 weeks.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/weigela-florida/" target="_blank">NCSU Plant Toolbox: Weigela</a>; MBG Plant Finder',
+    water_amount:'About 0.75\u20131 gallon per session for a 7\u201310 gallon pot. Do not overwater \u2014 soggy soil causes root rot quickly in pots.',
+    amt_src:'RHS Container Watering guidance; NCSU Weigela growing guide',
+    prune_season:'Immediately after the main spring flowering \u2014 late June to mid-July. A light tidy in early March removes winter dieback.',
+    prune_src:'RHS: <a href="https://www.rhs.org.uk/plants/weigela/pruning-guide" target="_blank">Weigela pruning guide</a> (Pruning Group 2); Dirr (2011)',
+    prune_intensity:'Light to moderate. Remove spent flower stems after blooming. Remove up to one-quarter of the oldest stems at the base each year. Do not cut this compact cultivar hard \u2014 it loses its mounding form.',
+    intensity_src:'RHS Pruning Group 2; Dirr\'s Encyclopedia of Trees and Shrubs (2011), p.847',
+    notes:'Blooms on old wood \u2014 avoid any significant autumn pruning. My Monet Purple Effect has striking purple-tinged variegated foliage that benefits from afternoon shade in zone 7 summer heat to prevent leaf scorch. Wrap the container in December.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/weigela-florida/" target="_blank">NCSU Plant Toolbox: Weigela florida</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=289034" target="_blank">MBG Plant Finder</a>',
+    prune_months:[3,6,7], protect_months:[12,1,2], water_more_months:[5,6,7,8],
+  },
+  {
+    id:'winterberry', common:'Winter Red Winterberry', latin:'Ilex verticillata \u2018Winter Red\u2019', emoji:'\uD83D\uDD34',
+    water_frequency:'High water needs \u2014 winterberry is naturally a wetland shrub. Spring\u2013summer: every 2\u20133 days; keep consistently moist. During fruiting (autumn), maintain consistent moisture for berry production. Reduce in winter but never let the pot dry completely.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/ilex-verticillata/" target="_blank">NCSU Plant Toolbox: Ilex verticillata</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=242416" target="_blank">MBG Plant Finder</a>',
+    water_amount:'Generous \u2014 1.5\u20132 gallons per session for a 15-gallon pot. Winterberry tolerates and prefers consistently moist (not waterlogged) soil. A saucer under the pot in summer helps retain moisture.',
+    amt_src:'NCSU Plant Toolbox: Ilex verticillata; MBG Plant Finder',
+    prune_season:'Late winter \u2014 February to early March, before new growth starts. The red berries persist through winter \u2014 avoid any autumn pruning that removes berry-bearing stems.',
+    prune_src:'<a href="https://www.rhs.org.uk/plants/ilex/pruning-guide" target="_blank">RHS: Ilex pruning guide</a>; <a href="https://plants.ces.ncsu.edu/plants/ilex-verticillata/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_intensity:'Light to moderate. Remove dead, crossing, or inward-growing stems. Thin up to one-quarter of the oldest stems at ground level to maintain an open multi-stemmed habit.',
+    intensity_src:'RHS Pruning Group 1; MBG Plant Finder: Ilex verticillata',
+    notes:'Requires a male pollinator cultivar \u2014 \u2018Jim Dandy\u2019 or \u2018Southern Gentleman\u2019 in a nearby pot. Prefers acidic soil (pH 5.5\u20136.5); use an ericaceous potting mix or amend with sulphur. In zone 7 pots, roots benefit from a thick mulch layer and insulated container in winter.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/ilex-verticillata/" target="_blank">NCSU Plant Toolbox: Ilex verticillata</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=242416" target="_blank">MBG: Ilex verticillata</a>',
+    prune_months:[2,3], protect_months:[12,1], water_more_months:[5,6,7,8,9],
+  },
+  {
+    id:'buddleia-pc', common:'Buddleia Prince Charming', latin:'Buddleja davidii \u2018Prince Charming\u2019', emoji:'\uD83E\uDD8B',
+    water_frequency:'Moderate. Spring\u2013summer: every 3\u20135 days; during peak flowering (July\u2013September) and heat waves, every 2\u20133 days. Autumn: every 7\u201310 days. Winter: once every 3 weeks.',
+    water_src:'<a href="https://www.rhs.org.uk/plants/buddleja/growing-guide" target="_blank">RHS: Buddleja growing guide</a>; <a href="https://plants.ces.ncsu.edu/plants/buddleja-davidii/" target="_blank">NCSU Plant Toolbox</a>',
+    water_amount:'About 1\u20131.5 gallons per session for a 10\u201315 gallon pot. Buddleia prefers slightly dry conditions over wet \u2014 ensure excellent drainage and never let the pot sit in water.',
+    amt_src:'RHS Container Watering; NCSU Plant Toolbox: Buddleja davidii',
+    prune_season:'Late winter \u2014 mid-February to mid-March, just as the forsythia blooms locally. Do not prune in autumn; old stems provide frost protection to the crown.',
+    prune_src:'RHS: <a href="https://www.rhs.org.uk/plants/buddleja/pruning-guide" target="_blank">Buddleja pruning guide</a> (Pruning Group 6)',
+    prune_intensity:'Hard. Cut all stems back to 12\u201318\u201d from the soil, leaving 2\u20133 pairs of buds on each stem. Without hard annual pruning, buddleia becomes woody and produces fewer flowers. Flowers on new wood.',
+    intensity_src:'RHS Pruning Group 6; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=243780" target="_blank">MBG Plant Finder: Buddleja</a>',
+    notes:'In zone 7 pots, the crown can be damaged by hard freezes. After the first frost, wrap the crown loosely with fleece or straw and wrap the pot. Do not cut back until late February as old stems act as insulation. Deadhead spent flower spikes promptly through summer to encourage continuous blooming into October.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/buddleja-davidii/" target="_blank">NCSU Plant Toolbox: Buddleja davidii</a>; RHS container growing guide',
+    prune_months:[2,3], protect_months:[11,12,1,2], water_more_months:[6,7,8,9],
+  },
+  {
+    id:'buddleia-bm', common:'Buddleia Buzz Midnight', latin:'Buddleja davidii \u2018Buzz Midnight\u2019', emoji:'\uD83D\uDC9C',
+    water_frequency:'Moderate. Spring\u2013summer: every 3\u20135 days; every 2\u20133 days during heat waves and peak flowering (July\u2013September). Autumn: every 7\u201310 days. Winter: once every 3 weeks. Buzz Midnight is a compact cultivar and its smaller root ball in a pot dries faster than standard buddleias.',
+    water_src:'<a href="https://www.rhs.org.uk/plants/buddleja/growing-guide" target="_blank">RHS: Buddleja growing guide</a>; Benary / Butterfly Bush Buzz series grower notes',
+    water_amount:'0.75\u20131 gallon per session for an 8\u201312 gallon pot. As a dwarf cultivar it needs less volume than full-size buddleias but the same free-draining conditions.',
+    amt_src:'RHS Container Watering; <a href="https://plants.ces.ncsu.edu/plants/buddleja-davidii/" target="_blank">NCSU Plant Toolbox: Buddleja davidii</a>',
+    prune_season:'Late winter \u2014 mid-February to mid-March. Buzz Midnight is compact and may need less hard pruning than full-size cultivars, but the principle is the same: prune before new growth starts.',
+    prune_src:'RHS Pruning Group 6; <a href="https://www.rhs.org.uk/plants/buddleja/pruning-guide" target="_blank">RHS Buddleja pruning guide</a>',
+    prune_intensity:'Moderate to hard. Cut stems back to 12\u201315\u201d from the soil. Because Buzz Midnight is naturally dwarf, monitor the result each year \u2014 it may only need cutting to 8\u201310\u201d to maintain its compact habit.',
+    intensity_src:'RHS Pruning Group 6; Buzz series cultivar notes (Benary)',
+    notes:'Same care principles as Prince Charming but in a smaller pot (8\u201312 gallon). Wrap the pot and crown after the first hard frost. Deadhead regularly for continuous bloom. Compact size makes it easier to move to shelter when hard frost is forecast. Excellent butterfly and pollinator plant.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/buddleja-davidii/" target="_blank">NCSU Plant Toolbox: Buddleja davidii</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=243780" target="_blank">MBG Plant Finder</a>',
+    prune_months:[2,3], protect_months:[11,12,1,2], water_more_months:[6,7,8,9],
+  },
+  {
+    id:'hibiscus-wc', common:'Hibiscus White Chiffon', latin:'Hibiscus syriacus \u2018White Chiffon\u2019', emoji:'\uD83C\uDF3A',
+    water_frequency:'Spring\u2013summer: every 2\u20133 days; daily during heat waves above 90\u00b0F. Hibiscus syriacus in a pot is thirstier than in the ground and wilts dramatically when dry \u2014 check the soil at 1\u201d depth daily in summer. Autumn: every 5\u20137 days as temperatures drop. Winter: once every 2\u20133 weeks; the plant is deciduous but the root ball must not dry out completely.',
+    water_src:'<a href="https://www.rhs.org.uk/plants/hibiscus/growing-guide" target="_blank">RHS: Hibiscus syriacus growing guide</a>; <a href="https://plants.ces.ncsu.edu/plants/hibiscus-syriacus/" target="_blank">NCSU Plant Toolbox: Hibiscus syriacus</a>',
+    water_amount:'1\u20131.5 gallons per session for a 10\u201315 gallon pot, until water drains freely from the bottom. Consistent moisture during the long flowering season (July\u2013October) is key to continuous bloom.',
+    amt_src:'<a href="https://plants.ces.ncsu.edu/plants/hibiscus-syriacus/" target="_blank">NCSU Plant Toolbox: Hibiscus syriacus</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=276918" target="_blank">MBG Plant Finder: Hibiscus syriacus</a>',
+    prune_season:'Late winter to early spring \u2014 late February to mid-March, just before buds break. White Chiffon blooms on new wood, so early pruning maximises the flowering season. Deadhead spent blooms throughout summer for the tidiest appearance, though it is not strictly necessary for rebloom.',
+    prune_src:'<a href="https://www.rhs.org.uk/plants/hibiscus/pruning-guide" target="_blank">RHS: Hibiscus syriacus pruning guide</a> (Pruning Group 6); <a href="https://plants.ces.ncsu.edu/plants/hibiscus-syriacus/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_intensity:'Moderate. Cut back all stems by one-third to one-half in late February, cutting to outward-facing buds. In a pot, also remove any crossing or inward-growing stems to keep an open structure and improve air circulation. Hard renovation pruning (to 12\u201d) is possible every few years to rejuvenate an old specimen.',
+    intensity_src:'RHS Pruning Group 6; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=276918" target="_blank">MBG Plant Finder: Hibiscus syriacus</a>',
+    notes:'White Chiffon is a sterile (non-seeding) double-flowered cultivar with elegant white blooms from July to October \u2014 one of the longest flowering periods of any shrub. In zone 7, Hibiscus syriacus is fully hardy (zone 5\u20139) but its roots in a pot are more vulnerable: wrap the container from December to February. Note that this shrub is one of the last to leaf out in spring (late April\u2013May) \u2014 do not assume it is dead if it looks bare in early spring. Use a high-potash fertiliser in April and again in June to support the long flower season.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/hibiscus-syriacus/" target="_blank">NCSU Plant Toolbox: Hibiscus syriacus</a>; <a href="https://www.rhs.org.uk/plants/hibiscus/growing-guide" target="_blank">RHS: Hibiscus syriacus</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=276918" target="_blank">MBG Plant Finder</a>',
+    prune_months:[2,3], protect_months:[12,1,2], water_more_months:[7,8,9,10],
+  },
+  {
+    id:'lonicera-scentsation', common:'Lonicera Scentsation', latin:'Lonicera periclymenum \u2018Scentsation\u2019', emoji:'\uD83C\uDF3C',
+    water_frequency:'Spring\u2013summer: every 3\u20134 days; every 2\u20133 days during heat waves. Lonicera periclymenum in a pot needs more consistent watering than its native woodland habitat suggests \u2014 the roots cannot follow moisture through the soil. Autumn: every 7 days. Winter: once every 2\u20133 weeks; it is semi-evergreen and continues to transpire in mild winters.',
+    water_src:'<a href="https://www.rhs.org.uk/plants/lonicera-periclymenum/growing-guide" target="_blank">RHS: Lonicera periclymenum growing guide</a>; <a href="https://plants.ces.ncsu.edu/plants/lonicera-periclymenum/" target="_blank">NCSU Plant Toolbox: Lonicera periclymenum</a>',
+    water_amount:'About 1\u20131.5 gallons per session for a 10\u201315 gallon pot. Ensure free drainage \u2014 Lonicera periclymenum dislikes waterlogged roots. The crown and lower stems should be kept cool; mulch the pot surface.',
+    amt_src:'RHS: Lonicera periclymenum growing guide; NCSU Plant Toolbox: Lonicera periclymenum',
+    prune_season:'Immediately after the main flush of flowering \u2014 typically July, as Scentsation blooms primarily in June\u2013July with some repeat in late summer. A light tidy in February\u2013March removes any winter dieback.',
+    prune_src:'<a href="https://www.rhs.org.uk/plants/lonicera/climbing/pruning-guide" target="_blank">RHS: Climbing Lonicera pruning guide</a> (Pruning Group 11); <a href="https://plants.ces.ncsu.edu/plants/lonicera-periclymenum/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_intensity:'Light to moderate. Scentsation blooms on the previous year\u2019s growth as well as new growth, so avoid cutting back hard immediately after flowering or you reduce next year\u2019s blooms. Remove dead, weak, or tangled stems; tip-prune to encourage branching. Hard renovation (cutting the whole plant back to 12\u201d) can be done in early spring every 4\u20135 years if the plant becomes a tangled mass.',
+    intensity_src:'RHS Pruning Group 11; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=280044" target="_blank">MBG Plant Finder: Lonicera periclymenum</a>',
+    notes:'Scentsation is one of the most powerfully fragrant honeysuckles available \u2014 the classic sweet honey scent is strongest in the evening. It is a European woodbine, distinct from the native Lonicera sempervirens already in your collection: the two have different flower colours (cream/yellow vs. coral-red) and fragrance (Scentsation is far more scented). In zone 7 pots, it is hardy (zone 4\u20139) but insulate the container in winter. Provide a sturdy trellis; it twines rather than using adhesive pads.',
+    notes_src:'<a href="https://www.rhs.org.uk/plants/lonicera-periclymenum/growing-guide" target="_blank">RHS: Lonicera periclymenum</a>; <a href="https://plants.ces.ncsu.edu/plants/lonicera-periclymenum/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_months:[2,3,7], protect_months:[12,1,2], water_more_months:[6,7,8],
+  },
+  {
+    id:'schizophragma-fg', common:'Schizophragma Flirty Girl', latin:'Schizophragma hydrangeoides \u2018Flirty Girl\u2019', emoji:'\uD83C\uDF3F',
+    water_frequency:'Spring\u2013summer: every 3\u20134 days; every 2\u20133 days during heat waves. Schizophragma in a pot is more drought-sensitive than climbing hydrangeas in the ground \u2014 consistent moisture is important, especially in its first few years. Autumn: every 7\u201310 days. Winter: once every 2\u20133 weeks; it is deciduous but roots must not desiccate.',
+    water_src:'<a href="https://www.rhs.org.uk/plants/schizophragma/growing-guide" target="_blank">RHS: Schizophragma growing guide</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=291782" target="_blank">MBG Plant Finder: Schizophragma hydrangeoides</a>',
+    water_amount:'1\u20131.5 gallons per session for a 15-gallon pot. Schizophragma prefers consistently moist but well-drained soil. In a pot, do not allow the soil to dry completely \u2014 drought stress causes leaf scorch and bud drop.',
+    amt_src:'RHS: Schizophragma growing guide; MBG Plant Finder: Schizophragma hydrangeoides',
+    prune_season:'Late winter to early spring \u2014 February to mid-March, before new growth starts. Schizophragma blooms on short spurs produced on the previous year\u2019s wood, so avoid cutting back into old framework in summer.',
+    prune_src:'<a href="https://www.rhs.org.uk/plants/schizophragma/pruning-guide" target="_blank">RHS: Schizophragma pruning guide</a> (Pruning Group 11); <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=291782" target="_blank">MBG Plant Finder</a>',
+    prune_intensity:'Light. Remove dead or damaged stems in late winter; shorten wayward shoots to keep the plant within the bounds of its support. Do not prune heavily \u2014 Schizophragma is slow to establish (often 2\u20133 years before first flowering) and hard pruning delays this further. Once established, minimal annual pruning is needed.',
+    intensity_src:'RHS Pruning Group 11; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=291782" target="_blank">MBG Plant Finder: Schizophragma hydrangeoides</a>',
+    notes:'Flirty Girl is a pink-bracted cultivar of Japanese hydrangea vine, valued for its large (up to 10\u201d) lacecap-style flower heads in July\u2013August. It is closely related to climbing hydrangea (Hydrangea anomala) but considered more ornamental. Be patient \u2014 the first 1\u20132 years in a pot will show slow growth; it establishes its root system before putting on vigorous top growth. In zone 7, it is hardy (zone 5\u20138) but pot roots need winter insulation. Use a large pot (15+ gallons) and a sturdy support \u2014 it attaches by aerial rootlets like climbing hydrangea. Prefers part shade to full shade; avoid harsh afternoon sun in zone 7 summers.',
+    notes_src:'<a href="https://www.rhs.org.uk/plants/schizophragma/growing-guide" target="_blank">RHS: Schizophragma hydrangeoides</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=291782" target="_blank">MBG Plant Finder: Schizophragma hydrangeoides</a>',
+    prune_months:[2,3], protect_months:[12,1,2], water_more_months:[6,7,8],
+  },
+
+  // ── TREES / LARGE SPECIMENS ──────────────────────────────────
+  {
+    id:'american-elm', common:'American Elm', latin:'Ulmus americana', emoji:'\uD83C\uDF33',
+    water_frequency:'Newly potted: water every 2\u20133 days for the first season while establishing. Once established in a pot: every 4\u20135 days in summer, weekly in spring/autumn, once every 2\u20133 weeks in winter. In a pot, elms are more drought-stressed than in the ground \u2014 do not let the soil dry out completely in summer.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/ulmus-americana/" target="_blank">NCSU Plant Toolbox: Ulmus americana</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=280226" target="_blank">MBG Plant Finder</a>',
+    water_amount:'For a large specimen in a 25\u201330 gallon pot: 3\u20134 gallons per session, until water flows freely from drainage holes. American Elm has a large root system; use the largest container practical.',
+    amt_src:'NCSU Plant Toolbox: Ulmus americana; ISA (International Society of Arboriculture) tree watering guidelines',
+    prune_season:'Late winter to early spring, while fully dormant \u2014 January to early March, before bud break. Avoid pruning from April to October to reduce risk of Dutch Elm Disease transmission via open wounds and elm bark beetles.',
+    prune_src:'<a href="https://www.fs.usda.gov/research/treesearch/36887" target="_blank">USDA Forest Service: Dutch Elm Disease management</a>; <a href="https://plants.ces.ncsu.edu/plants/ulmus-americana/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_intensity:'Light structural pruning only. In a pot, focus on removing dead, diseased, or crossing branches and maintaining a single leader. Do not remove more than 20% of live canopy in a single year. A potted elm should be kept deliberately small \u2014 consider it a large bonsai-style specimen.',
+    intensity_src:'ISA Best Management Practices: Tree Pruning; NCSU Cooperative Extension: Ulmus americana',
+    notes:'American Elm in a pot is a commitment: it wants to be a large tree. Use the largest container you can manage (25+ gallons) and refresh the root ball every 3 years. Dutch Elm Disease is the greatest threat \u2014 purchase only certified disease-resistant cultivars (e.g. \u2018Princeton\u2019, \u2018Valley Forge\u2019). In zone 7, the tree is fully hardy but its roots in a pot need insulation in winter. Site in full sun.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/ulmus-americana/" target="_blank">NCSU Plant Toolbox: Ulmus americana</a>; <a href="https://www.fs.usda.gov/research/treesearch/36887" target="_blank">USDA FS: Dutch Elm Disease</a>',
+    prune_months:[1,2,3], protect_months:[12,1,2],
+  },
+
+  // ── PERENNIALS / BULBS ───────────────────────────────────────
+  {
+    id:'daylily', common:'Yellow Daylily', latin:'Hemerocallis (yellow cultivar)', emoji:'\uD83C\uDFDA\uFE0F',
+    water_frequency:'Spring\u2013summer: every 3\u20134 days, or when the top inch of soil is dry. During bloom (June\u2013July), keep consistently moist for best flower production. Autumn: every 7\u201310 days as foliage dies back. Winter: water very sparingly, once every 3\u20134 weeks, just enough to prevent complete desiccation.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/hemerocallis/" target="_blank">NCSU Plant Toolbox: Hemerocallis</a>; American Hemerocallis Society',
+    water_amount:'About 0.5\u20131 gallon per session for a 5\u20138 gallon pot. Daylilies are relatively drought-tolerant once established, but consistent moisture in a pot is important during flowering. Overwatering \u2014 especially in winter \u2014 rots the crown.',
+    amt_src:'<a href="https://www.daylilies.org/pages/care-and-culture" target="_blank">American Hemerocallis Society: Care and Culture</a>',
+    prune_season:'Cut back spent flower stalks at the base throughout the blooming season (June\u2013August). In autumn (October\u2013November) cut foliage back to 3\u20134\u201d above the crown after the first killing frost.',
+    prune_src:'<a href="https://www.daylilies.org/pages/care-and-culture" target="_blank">American Hemerocallis Society: Care and Culture</a>; <a href="https://plants.ces.ncsu.edu/plants/hemerocallis/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_intensity:'Light \u2014 simply remove spent scapes and dead foliage. No structural pruning needed. Division every 3\u20134 years in spring or early autumn refreshes the plant and is necessary when bloom declines.',
+    intensity_src:'American Hemerocallis Society; Armitage\'s Garden Perennials (2000)',
+    notes:'Daylilies in zone 7 pots are tough but pot roots are more vulnerable to freeze-thaw heaving than in-ground clumps. Move the pot to a sheltered spot or garage in January\u2013February if temperatures drop below 10\u00b0F. Yellow daylilies spread aggressively if allowed to escape \u2014 a pot is an ideal way to contain them. Feed with a balanced slow-release fertiliser in April.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/hemerocallis/" target="_blank">NCSU Plant Toolbox: Hemerocallis</a>; <a href="https://www.daylilies.org/pages/care-and-culture" target="_blank">American Hemerocallis Society</a>',
+    prune_months:[10,11], protect_months:[1,2], water_more_months:[6,7,8],
+  },
+  {
+    id:'tiger-lily', common:'Tiger Lily', latin:'Lilium lancifolium (syn. L. tigrinum)', emoji:'\uD83E\uDDE1',
+    water_frequency:'Active growth (spring\u2013summer): every 3\u20134 days, or when the top 2\u201d of soil is dry. During flowering (July\u2013August), keep consistently moist. After blooming dies back: reduce to once every 7\u201310 days. Winter dormancy: water very sparingly, once a month \u2014 bulbs rot easily in wet winter soil.',
+    water_src:'<a href="https://www.rhs.org.uk/plants/8729/lilium-lancifolium/details" target="_blank">RHS: Lilium lancifolium</a>; North American Lily Society',
+    water_amount:'About 0.5\u20131 gallon per session for a 5\u20138 gallon pot (1 bulb). Water at the base of the plant; avoid wetting the foliage or stem as this promotes Botrytis. Ensure the pot has excellent drainage \u2014 bulbs rot in wet soil.',
+    amt_src:'<a href="https://lilies.org/culture/" target="_blank">North American Lily Society: Lily Culture</a>; RHS Lily growing guide',
+    prune_season:'Deadhead individual spent blooms during flowering (July\u2013August). Do not cut back the stem or foliage until it has turned fully yellow and died back naturally (usually October\u2013November).',
+    prune_src:'<a href="https://lilies.org/culture/" target="_blank">North American Lily Society</a>; <a href="https://www.rhs.org.uk/plants/lilium/growing-guide" target="_blank">RHS Lily growing guide</a>',
+    prune_intensity:'Minimal \u2014 deadhead only. The stem and foliage must be allowed to die back naturally so the bulb can store energy for next year. Cutting back early weakens or kills the bulb.',
+    intensity_src:'North American Lily Society; RHS: Growing Lilies',
+    notes:'Tiger Lily is unique in producing bulbils (small black bulblets) in the leaf axils \u2014 these can be collected and grown on, but note that Tiger Lily is a known carrier of Cucumber Mosaic Virus, which is harmless to the lily itself but can infect nearby plants. Grow it slightly away from other susceptible species. In zone 7, bulbs are hardy but pot roots benefit from winter protection (move to cool garage, or mulch heavily). Repot annually in autumn, refreshing soil.',
+    notes_src:'<a href="https://lilies.org/culture/" target="_blank">North American Lily Society</a>; <a href="https://plants.ces.ncsu.edu/plants/lilium-lancifolium/" target="_blank">NCSU Plant Toolbox: Lilium lancifolium</a>',
+    prune_months:[10,11], protect_months:[12,1,2], water_more_months:[6,7,8],
+  },
+  {
+    id:'blue-violet', common:'Common Blue Violet', latin:'Viola sororia', emoji:'\uD83D\uDC9C',
+    water_frequency:'Spring\u2013summer: every 4\u20135 days, or when the top inch of soil is dry. Common blue violet prefers evenly moist conditions and will wilt visibly if the pot dries out. Autumn: every 7\u201310 days. Winter: very little \u2014 once every 3\u20134 weeks, just enough to prevent desiccation of the rhizome.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/viola-sororia/" target="_blank">NCSU Plant Toolbox: Viola sororia</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=291527" target="_blank">MBG Plant Finder</a>',
+    water_amount:'About 0.25\u20130.5 gallons per session for a small 3\u20135 gallon pot. Violets have shallow root systems; do not flood the pot. They prefer consistent light moisture over deep infrequent watering.',
+    amt_src:'NCSU Plant Toolbox: Viola sororia; MBG Plant Finder: Viola sororia',
+    prune_season:'Deadhead spent flowers throughout the blooming season (March\u2013May). Cut back the entire plant by half in midsummer (July) if it becomes leggy or straggly.',
+    prune_src:'<a href="https://plants.ces.ncsu.edu/plants/viola-sororia/" target="_blank">NCSU Plant Toolbox: Viola sororia</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=291527" target="_blank">MBG Plant Finder</a>',
+    prune_intensity:'Light. Simply deadhead and trim back straggly growth. Common Blue Violet is a native plant that largely cares for itself. In pots it can be cut back hard (to 1\u20132\u201d) in late summer to tidy and encourage fresh autumn growth.',
+    intensity_src:'MBG Plant Finder: Viola sororia; Armitage\'s Garden Perennials (2000)',
+    notes:'Viola sororia is a tough native perennial, fully hardy in zone 7. In a pot it can self-seed aggressively (cleistogamous seed capsules in summer) \u2014 deadhead diligently to prevent this. It grows in shade to part shade and is one of the best native plants for early spring pollinators. In zone 7 pots, minimal winter protection is needed; just move the pot out of freezing wind and standing water.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/viola-sororia/" target="_blank">NCSU Plant Toolbox: Viola sororia</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=291527" target="_blank">MBG Plant Finder</a>',
+    prune_months:[3,4,5,7],
+  },
+  {
+    id:'hosta', common:'Hosta (August Lily)', latin:'Hosta plantaginea', emoji:'\uD83C\uDF3F',
+    water_frequency:'Spring\u2013summer: every 3\u20134 days. August Lily (H. plantaginea) is slightly more drought-tolerant than most hostas but in a pot it cannot draw on surrounding soil moisture. Keep evenly moist. Autumn: every 7\u201310 days. Winter dormancy: water very sparingly (once a month) to prevent crown rot.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/hosta-plantaginea/" target="_blank">NCSU Plant Toolbox: Hosta plantaginea</a>; American Hosta Society',
+    water_amount:'About 0.5\u20131 gallon per session for a 5\u201310 gallon pot. Always water at the base to avoid spotting the large leaves. Hosta prefers consistent moisture but hates waterlogged soil.',
+    amt_src:'<a href="https://www.americanhostasociety.org/culture.html" target="_blank">American Hosta Society: Culture</a>; <a href="https://plants.ces.ncsu.edu/plants/hosta-plantaginea/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_season:'No pruning during the growing season. Cut back dead foliage in late autumn (November), after the first hard frost has fully killed the leaves. The fragrant white flowers (August\u2013September) should be allowed to complete their cycle.',
+    prune_src:'<a href="https://www.americanhostasociety.org/culture.html" target="_blank">American Hosta Society: Culture</a>; <a href="https://www.rhs.org.uk/plants/hosta/growing-guide" target="_blank">RHS: Hosta growing guide</a>',
+    prune_intensity:'Minimal \u2014 remove dead leaves and flower stems in autumn only. Division every 3\u20135 years in early spring, just as the eyes emerge, rejuvenates the clump.',
+    intensity_src:'American Hosta Society; RHS Hosta growing guide',
+    notes:'August Lily is notable for its fragrant white flowers (unusual among hostas) in late summer. Site in part shade to full shade \u2014 afternoon sun in zone 7 will scorch the leaves badly. Slugs and snails are the primary pest; use copper tape around the pot rim or iron phosphate slug bait. In zone 7 pots, crown freeze can occur during hard winters \u2014 insulate the pot from December to February with burlap or move to a cool garage.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/hosta-plantaginea/" target="_blank">NCSU Plant Toolbox: Hosta plantaginea</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=241685" target="_blank">MBG Plant Finder: Hosta plantaginea</a>',
+    prune_months:[11], protect_months:[12,1,2], water_more_months:[7,8],
+  },
+
+  // ── VINES / CLIMBERS ─────────────────────────────────────────
+  {
+    id:'clematis', common:'Clematis Jackmanii', latin:'Clematis \u00d7 jackmanii', emoji:'\uD83C\uDF0A',
+    water_frequency:'High needs, especially in summer. Spring\u2013autumn: every 2\u20133 days; in hot spells above 85\u00b0F, daily watering may be needed. Keep roots cool and moist. Reduce to once weekly in autumn, once every 2\u20133 weeks in winter.',
+    water_src:'<a href="https://www.rhs.org.uk/plants/clematis/growing-guide" target="_blank">RHS: Clematis growing guide</a>; <a href="https://www.clematisinternational.com/culture" target="_blank">International Clematis Society</a>',
+    water_amount:'1.5\u20132 gallons per session for a 15-gallon pot. Water slowly at the base. Mulch the pot surface with 2\u20133\u201d of bark and consider wrapping the pot in reflective material to prevent root overheating.',
+    amt_src:'RHS Container Watering; International Clematis Society: Clematis in Containers',
+    prune_season:'Jackmanii is a Group 3 (hard pruning) clematis. Prune hard in late February to early March, cutting all stems back to 12\u201318 inches from soil level, to the lowest pair of healthy buds.',
+    prune_src:'<a href="https://www.rhs.org.uk/plants/clematis/pruning-guide" target="_blank">RHS: Clematis pruning guide</a> (Pruning Group 3); <a href="https://www.clematisinternational.com/culture" target="_blank">International Clematis Society</a>',
+    prune_intensity:'Hard \u2014 non-negotiable for Jackmanii. Skip the annual hard prune and it will flower only at the tops of increasingly bare stems. Cut every stem to 12\u201318\u201d. Regrows vigorously and flowers on new wood from mid-summer through autumn.',
+    intensity_src:'RHS Pruning Group 3; International Clematis Society',
+    notes:'Use a minimum 15-gallon container \u2014 clematis has an extensive root system. A deep pot (18\u201d+) is better than a wide shallow one. Ensure a sturdy support (trellis, obelisk) securely anchored. In zone 7 winters, move to a sheltered spot and wrap the pot. Top-dress with fresh compost in April and feed weekly with a high-potash liquid fertiliser from May until flowering ends.',
+    notes_src:'<a href="https://www.clematisinternational.com/culture" target="_blank">International Clematis Society</a>; <a href="https://www.rhs.org.uk/plants/clematis/growing-guide" target="_blank">RHS: Clematis growing guide</a>',
+    prune_months:[2,3], protect_months:[12,1,2], water_more_months:[6,7,8],
+  },
+  {
+    id:'coral-honeysuckle', common:'Coral Honeysuckle', latin:'Lonicera sempervirens', emoji:'\uD83E\uDDE1',
+    water_frequency:'Spring\u2013summer: every 3\u20134 days during active growth and flowering; every 2\u20133 days in heat waves. Autumn: once a week. Winter: once every 2\u20133 weeks. Coral Honeysuckle is drought-tolerant once established in the ground but in a pot needs more regular attention.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/lonicera-sempervirens/" target="_blank">NCSU Plant Toolbox: Lonicera sempervirens</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=280047" target="_blank">MBG Plant Finder</a>',
+    water_amount:'About 1\u20131.5 gallons per session for a 10\u201315 gallon pot. Ensure free drainage. Lonicera sempervirens dislikes waterlogged roots but wilts quickly when too dry in summer heat.',
+    amt_src:'NCSU Plant Toolbox: Lonicera sempervirens; MBG Plant Finder',
+    prune_season:'Light shaping immediately after the first main flush of bloom (May\u2013June). A more substantial tidy in late winter (February\u2013March) before new growth. Avoid hard pruning in autumn.',
+    prune_src:'<a href="https://www.rhs.org.uk/plants/lonicera/climbing/pruning-guide" target="_blank">RHS: Climbing Lonicera pruning guide</a>; <a href="https://plants.ces.ncsu.edu/plants/lonicera-sempervirens/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_intensity:'Light to moderate. Coral Honeysuckle reblooms throughout summer and should not be cut hard. Remove dead or tangled stems, tip-prune to encourage branching, and lightly thin after each bloom flush. Hard renovation pruning (to 12\u201d) is possible in early March if severely overgrown but will delay that year\'s early bloom.',
+    intensity_src:'RHS Pruning Group 11; NCSU Plant Toolbox: Lonicera sempervirens',
+    notes:'Lonicera sempervirens is a native vine and one of the best for attracting hummingbirds. In zone 7 pots it is semi-evergreen to evergreen. Provide a sturdy trellis or obelisk. It blooms on old and new wood, so avoid hard autumn pruning. Minimal pest issues \u2014 Japanese Elm Aphids can appear on new growth; wash off with a strong spray of water. In zone 7 pots, winter protection of the container is advisable.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/lonicera-sempervirens/" target="_blank">NCSU Plant Toolbox: Lonicera sempervirens</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=280047" target="_blank">MBG Plant Finder</a>',
+    prune_months:[2,3,5,6], protect_months:[12,1,2], water_more_months:[6,7,8],
+  },
+  {
+    id:'campsis', common:'Campsis Radicans', latin:'Campsis radicans', emoji:'\uD83C\uDFE1',
+    water_frequency:'Spring\u2013summer: every 3\u20134 days; more during establishment or heat waves. Once well established, Campsis is drought-tolerant in the ground, but in a pot it needs regular watering. Autumn: once a week. Winter: once every 3 weeks.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/campsis-radicans/" target="_blank">NCSU Plant Toolbox: Campsis radicans</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=243578" target="_blank">MBG Plant Finder</a>',
+    water_amount:'1\u20131.5 gallons per session for a 15-gallon pot. Campsis has vigorous roots \u2014 use the largest pot practical. Ensure excellent drainage; waterlogged roots are quickly damaged.',
+    amt_src:'NCSU Plant Toolbox: Campsis radicans; MBG Plant Finder',
+    prune_season:'Late winter to early spring \u2014 February to mid-March, before any new growth emerges. Campsis blooms on new wood so early pruning maximises the flowering season. Deadhead spent clusters throughout summer.',
+    prune_src:'<a href="https://www.rhs.org.uk/plants/campsis/pruning-guide" target="_blank">RHS: Campsis pruning guide</a> (Pruning Group 6); <a href="https://plants.ces.ncsu.edu/plants/campsis-radicans/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_intensity:'Hard. Cut all side shoots back to 2\u20133 buds from the main framework in late winter. The framework itself can be shortened by up to one-third. In a pot, keep the overall size in check \u2014 Campsis is a vigorous vine that can become unmanageable without regular pruning.',
+    intensity_src:'RHS Pruning Group 6; Dirr\'s Encyclopedia of Trees and Shrubs (2011); NCSU Plant Toolbox',
+    notes:'Campsis radicans is a native vine of outstanding vigour \u2014 in a pot this is actually an advantage as it limits its spread. Provide very sturdy support; Campsis vines can be very heavy when mature. The sap can cause skin irritation in some people (wear gloves when pruning). In zone 7, it is fully hardy but pot roots should be insulated in winter. It is a Zone 4\u20139 plant so cold is not the main concern \u2014 use a large (15+ gallon) pot to accommodate its root system.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/campsis-radicans/" target="_blank">NCSU Plant Toolbox: Campsis radicans</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=243578" target="_blank">MBG Plant Finder</a>',
+    prune_months:[2,3], protect_months:[12,1], water_more_months:[6,7,8],
+  },
+  {
+    id:'boston-ivy', common:'Boston Ivy', latin:'Parthenocissus tricuspidata', emoji:'\uD83C\uDF42',
+    water_frequency:'Spring\u2013summer: every 3\u20135 days. Boston Ivy is drought-tolerant once established in the ground, but in a pot \u2014 especially during active growth \u2014 it needs regular watering. Autumn: once a week as the plant approaches dormancy. Winter: once every 2\u20133 weeks.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/parthenocissus-tricuspidata/" target="_blank">NCSU Plant Toolbox: Parthenocissus tricuspidata</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=281038" target="_blank">MBG Plant Finder</a>',
+    water_amount:'1\u20131.5 gallons per session for a 15-gallon pot. Parthenocissus has vigorous roots; use a large, deep pot. Ensure drainage holes are not blocked by the dense root mass.',
+    amt_src:'NCSU Plant Toolbox: Parthenocissus tricuspidata; RHS Container Watering',
+    prune_season:'Late winter to early spring (February\u2013March), before new growth. Also trim back wayward stems throughout summer if needed to keep the plant within bounds.',
+    prune_src:'<a href="https://www.rhs.org.uk/plants/parthenocissus/pruning-guide" target="_blank">RHS: Parthenocissus pruning guide</a>; <a href="https://plants.ces.ncsu.edu/plants/parthenocissus-tricuspidata/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_intensity:'Moderate. Cut back the main stems by up to one-third in late winter, and trim side shoots to 2\u20133 buds. Boston Ivy attaches by adhesive pads (not tendrils) \u2014 in a pot on a trellis, manage growth aggressively to prevent the trellis becoming overwhelmed.',
+    intensity_src:'RHS Pruning Group 11; MBG Plant Finder: Parthenocissus tricuspidata',
+    notes:'One of the most spectacular autumn-colouring vines in zone 7, turning brilliant scarlet. In a pot, it can be trained on a freestanding trellis or obelisk. It is fully hardy in zone 7 but pot roots should be protected in severe winters. Boston Ivy self-clings via adhesive pads and will eventually adhere to nearby walls or surfaces \u2014 keep this in mind when siting the pot.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/parthenocissus-tricuspidata/" target="_blank">NCSU Plant Toolbox: Parthenocissus tricuspidata</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=281038" target="_blank">MBG Plant Finder</a>',
+    prune_months:[2,3], protect_months:[12,1,2], water_more_months:[6,7,8],
+  },
+  {
+    id:'virginia-creeper', common:'Virginia Creeper', latin:'Parthenocissus quinquefolia', emoji:'\uD83C\uDF41',
+    water_frequency:'Spring\u2013summer: every 3\u20135 days; every 2\u20133 days in heat waves. Virginia Creeper is very drought-tolerant in the ground but in a pot \u2014 especially a young plant \u2014 needs reliable watering. Autumn: weekly as leaves turn and fall. Winter: once every 3 weeks.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/parthenocissus-quinquefolia/" target="_blank">NCSU Plant Toolbox: Parthenocissus quinquefolia</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=281036" target="_blank">MBG Plant Finder</a>',
+    water_amount:'1\u20131.5 gallons per session for a 15-gallon pot. Vigorous roots require a large container. Virginia Creeper is more tolerant of dry periods than Boston Ivy, but in a pot should not be allowed to fully dry out in summer.',
+    amt_src:'NCSU Plant Toolbox: Parthenocissus quinquefolia; MBG Plant Finder',
+    prune_season:'Late winter (February\u2013March), before bud break. Also trim freely throughout the growing season to control the very vigorous growth.',
+    prune_src:'<a href="https://www.rhs.org.uk/plants/parthenocissus/pruning-guide" target="_blank">RHS: Parthenocissus pruning guide</a>; <a href="https://plants.ces.ncsu.edu/plants/parthenocissus-quinquefolia/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_intensity:'Moderate to hard. Virginia Creeper is extremely vigorous \u2014 cut back by one-third to one-half in late winter and trim actively through summer. In a pot this is an advantage: the confined roots limit its typical invasiveness.',
+    intensity_src:'RHS Pruning Group 11; NCSU Plant Toolbox: Parthenocissus quinquefolia',
+    notes:'Virginia Creeper provides outstanding autumn colour (deep crimson) in zone 7 and is fully hardy. In a pot it is well-contained. Note: the berries are toxic to humans and pets if ingested, though birds eat them freely. It attaches by adhesive pads like Boston Ivy \u2014 be careful of nearby structures. Minimal pest problems; powdery mildew can occur in dry summers.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/parthenocissus-quinquefolia/" target="_blank">NCSU Plant Toolbox: Parthenocissus quinquefolia</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=281036" target="_blank">MBG Plant Finder</a>',
+    prune_months:[2,3], protect_months:[12,1], water_more_months:[6,7,8],
+  },
+
+  // ── GROUND COVERS / OTHER ────────────────────────────────────
+  {
+    id:'boxwood', common:'Boxwood', latin:'Buxus sempervirens', emoji:'\uD83D\uDFE9',
+    water_frequency:'Spring\u2013summer: every 3\u20135 days; every 2\u20133 days during heat waves above 90\u00b0F. Boxwood in a pot dries out much faster than in-ground plants and is surprisingly drought-sensitive despite its tough reputation. Autumn: every 7\u201310 days. Winter: once every 2\u20133 weeks \u2014 boxwood is evergreen and continues to transpire slowly even in cold weather; do not let it fully dry out.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/buxus-sempervirens/" target="_blank">NCSU Plant Toolbox: Buxus sempervirens</a>; <a href="https://www.rhs.org.uk/plants/buxus/growing-guide" target="_blank">RHS: Buxus growing guide</a>',
+    water_amount:'About 1\u20131.5 gallons per session for a 10\u201315 gallon pot, until water drains freely from the bottom. Avoid overwatering \u2014 root rot (Phytophthora) is one of the primary killers of potted boxwood. Ensure the pot has excellent drainage.',
+    amt_src:'<a href="https://www.rhs.org.uk/plants/buxus/growing-guide" target="_blank">RHS: Buxus growing guide</a>; <a href="https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=243155" target="_blank">MBG Plant Finder: Buxus sempervirens</a>',
+    prune_season:'Late spring, after the flush of new growth hardens off \u2014 typically late May to mid-June in zone 7. A second light trim in late August tidies growth without stimulating tender new shoots before frost. Avoid pruning after September.',
+    prune_src:'<a href="https://www.rhs.org.uk/plants/buxus/pruning-guide" target="_blank">RHS: Buxus pruning guide</a> (Pruning Group 8); <a href="https://plants.ces.ncsu.edu/plants/buxus-sempervirens/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_intensity:'Light to moderate. For topiary or formal shapes, clip with sharp shears to maintain the desired outline. For a natural mounded habit, trim lightly with hand pruners to remove about one-quarter of new growth. Never cut back into old, bare wood \u2014 boxwood regrows poorly from old stems. Clean tools between plants to avoid spreading Boxwood Blight.',
+    intensity_src:'RHS Pruning Group 8; <a href="https://extension.ncsu.edu/publications/AG-737" target="_blank">NCSU Extension: Boxwood Blight (AG-737)</a>',
+    notes:'Boxwood Blight (Calonectria pseudonaviculata) is a serious fungal disease in zone 7 \u2014 look for brown spots on leaves and black streaks on stems, and remove affected material immediately. In a pot, boxwood is vulnerable to winter bronzing (foliage turns orange-brown) from desiccating winds \u2014 site in a sheltered location and consider wrapping loosely with burlap from December to February, leaving the top open for air circulation. Do not fertilise after July, as soft late growth is frost-susceptible. Use a slow-release balanced fertiliser in April only.',
+    notes_src:'<a href="https://extension.ncsu.edu/publications/AG-737" target="_blank">NCSU Extension: Boxwood Blight (AG-737)</a>; <a href="https://plants.ces.ncsu.edu/plants/buxus-sempervirens/" target="_blank">NCSU Plant Toolbox: Buxus sempervirens</a>; <a href="https://www.rhs.org.uk/plants/buxus/growing-guide" target="_blank">RHS: Buxus growing guide</a>',
+    prune_months:[5,6,8], protect_months:[12,1,2], water_more_months:[6,7,8],
+  },
+  {
+    id:'ivy', common:'English Ivy', latin:'Hedera helix', emoji:'\uD83C\uDF3F',
+    water_frequency:'Low to moderate. Spring\u2013summer: every 5\u20137 days. Autumn: every 10\u201314 days. Winter: once every 3\u20134 weeks \u2014 ivy is evergreen but largely dormant; overwatering in winter causes root rot.',
+    water_src:'<a href="https://plants.ces.ncsu.edu/plants/hedera-helix/" target="_blank">NCSU Plant Toolbox: Hedera helix</a>; <a href="https://www.rhs.org.uk/plants/hedera/growing-guide" target="_blank">RHS: Hedera growing guide</a>',
+    water_amount:'About 0.5\u20131 gallon per session for a 10-gallon pot. Allow the top 2\u20133\u201d of soil to dry between waterings. Ivy is more tolerant of underwatering than overwatering.',
+    amt_src:'RHS: Hedera growing guide; NCSU Plant Toolbox: Hedera helix',
+    prune_season:'Any time from March through September. Most tidying in spring (March\u2013April) and midsummer (July). Avoid pruning in late autumn and winter.',
+    prune_src:'<a href="https://www.rhs.org.uk/plants/hedera/pruning-guide" target="_blank">RHS: Hedera pruning guide</a>; <a href="https://plants.ces.ncsu.edu/plants/hedera-helix/" target="_blank">NCSU Plant Toolbox</a>',
+    prune_intensity:'Light to moderate as needed. Pinch and shape freely. For rejuvenation, cut all stems back hard (to 3\u20134\u201d) in early March \u2014 it regrows rapidly. Remove any reversion shoots (plain green on a variegated variety) immediately.',
+    intensity_src:'RHS Hedera pruning guide; NCSU Plant Toolbox: Hedera helix',
+    notes:'English ivy is hardy to -10\u00b0F, so zone 7 pots require minimal winter protection. A brief wrap in January\u2013February is prudent during sustained cold snaps. Keep the pot away from in-ground soil to prevent it rooting into the ground. Spider mites are the primary pest in hot, dry summers \u2014 mist foliage occasionally and inspect the leaf undersides.',
+    notes_src:'<a href="https://plants.ces.ncsu.edu/plants/hedera-helix/" target="_blank">NCSU Plant Toolbox: Hedera helix</a>; <a href="https://www.rhs.org.uk/plants/hedera/growing-guide" target="_blank">RHS: Hedera growing guide</a>',
+    prune_months:[3,4,7], protect_months:[1,2],
+  },
+];
+
+const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let selectedId=null, weatherData=null;
+const logHistory=[];
+
+function srcHtml(label, src) {
+  if (!src) return '';
+  return `<div class="care-source"><span class="src-label">Source:</span>${src}</div>`;
+}
+
+function renderGrid() {
+  const g = document.getElementById('plantGrid');
+  g.innerHTML = '';
+  PLANTS.forEach(p => {
+    const b = document.createElement('button');
+    b.className = 'plant-btn' + (selectedId === p.id ? ' active' : '');
+    b.innerHTML = `<div class="plant-dot">${p.emoji}</div><div class="plant-info"><div class="plant-common">${p.common}</div><div class="plant-latin">${p.latin}</div></div>`;
+    b.onclick = () => selectPlant(p.id);
+    g.appendChild(b);
+  });
+}
+
+function selectPlant(id) {
+  selectedId = id;
+  renderGrid();
+  const p = PLANTS.find(x => x.id === id);
+  renderCare(p);
+}
+
+function renderCare(p) {
+  const panel = document.getElementById('carePanel');
+  panel.style.display = 'block';
+  const chips = MONTH_NAMES.map((m, i) => {
+    const mn = i + 1;
+    let cls = 'month-chip';
+    if ((p.prune_months||[]).includes(mn)) cls += ' prune-m';
+    else if ((p.water_more_months||[]).includes(mn)) cls += ' water-m';
+    else if ((p.protect_months||[]).includes(mn)) cls += ' prot-m';
+    return `<span class="${cls}">${m}</span>`;
+  }).join('');
+
+  panel.innerHTML = `
+    <div class="care-head">
+      <div><div class="care-head-name">${p.common}</div><div class="care-head-latin">${p.latin}</div></div>
+      <span class="badge badge-green">Zone 7 &middot; Pot</span>
+    </div>
+    <div class="care-body">
+      <div class="care-grid">
+        <div class="care-card c-freq">
+          <div class="care-label">Watering frequency</div>
+          <div class="care-val">${p.water_frequency}</div>
+          ${srcHtml('Source', p.water_src)}
+        </div>
+        <div class="care-card c-water">
+          <div class="care-label">Watering amount</div>
+          <div class="care-val">${p.water_amount}</div>
+          ${srcHtml('Source', p.amt_src)}
+        </div>
+        <div class="care-card c-prune">
+          <div class="care-label">Pruning season</div>
+          <div class="care-val">${p.prune_season}</div>
+          ${srcHtml('Source', p.prune_src)}
+        </div>
+        <div class="care-card c-hard">
+          <div class="care-label">Pruning intensity</div>
+          <div class="care-val">${p.prune_intensity}</div>
+          ${srcHtml('Source', p.intensity_src)}
+        </div>
+        <div class="care-card c-notes">
+          <div class="care-label">Pot-specific tips for zone 7</div>
+          <div class="care-val">${p.notes}</div>
+          ${srcHtml('Source', p.notes_src)}
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="care-label" style="margin-bottom:6px;">Month-by-month calendar</div>
+        <div class="season-strip">${chips}</div>
+        <div class="strip-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--moss-ll);border:0.5px solid #c2d9b8;"></div>Prune</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue-l);border:0.5px solid #b0cce8;"></div>Water more often</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--amber-l);border:0.5px solid #e8c87a;"></div>Protect / insulate pot</div>
+        </div>
+      </div>
+    </div>`;
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── Open-Meteo config for ZIP 10025 (Upper West Side, NY) ──────
+const WX_LAT  = 40.7968;
+const WX_LON  = -73.9665;
+const WX_URL  = `https://api.open-meteo.com/v1/forecast`
+  + `?latitude=${WX_LAT}&longitude=${WX_LON}`
+  + `&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,uv_index`
+  + `&temperature_unit=fahrenheit&precipitation_unit=inch&timezone=America%2FNew_York`;
+
+// WMO weather code → human-readable condition string
+function wmoCondition(code) {
+  if (code === 0)            return 'Clear sky';
+  if (code <= 2)             return 'Partly cloudy';
+  if (code === 3)            return 'Overcast';
+  if (code <= 49)            return 'Foggy';
+  if (code <= 55)            return 'Drizzle';
+  if (code <= 67)            return 'Rain';
+  if (code <= 77)            return 'Snow';
+  if (code <= 82)            return 'Rain showers';
+  if (code <= 86)            return 'Snow showers';
+  if (code <= 99)            return 'Thunderstorm';
+  return 'Unknown';
+}
+
+// Simple 1-hour in-memory cache so rapid re-clicks don't re-fetch
+let wxCache = null, wxCacheTime = 0;
+const WX_TTL = 60 * 60 * 1000; // 1 hour in ms
+
+async function fetchWeather() {
+  const now = Date.now();
+  if (wxCache && (now - wxCacheTime) < WX_TTL) return wxCache;
+  const res = await fetch(WX_URL);
+  if (!res.ok) throw new Error(`Open-Meteo responded with ${res.status}`);
+  const json = await res.json();
+  const c = json.current;
+  const w = {
+    t:    Math.round(c.temperature_2m),
+    h:    Math.round(c.relative_humidity_2m),
+    r:    +c.precipitation.toFixed(2),
+    uv:   Math.round(c.uv_index),
+    cond: wmoCondition(c.weather_code),
+  };
+  wxCache = w; wxCacheTime = now;
+  return w;
+}
+
+function needsExtra(w){return w.t>88||w.h<35||(w.r<0.1&&w.t>82&&w.uv>7);}
+function needsFreeze(w){return w.t<32;}
+function alertReason(w){
+  if(w.t>92&&w.h<40)return`Extreme heat (${w.t}\u00b0F) with low humidity (${w.h}%) \u2014 pots are losing moisture rapidly.`;
+  if(w.t>88)return`High temperature (${w.t}\u00b0F) is drying out pots quickly.`;
+  if(w.h<35)return`Very low humidity (${w.h}%) is stressing potted plants.`;
+  return`High UV (${w.uv}) combined with heat is accelerating evaporation in pots.`;
+}
+function thirstyNow(){const mn=new Date().getMonth()+1;return PLANTS.filter(p=>(p.water_more_months||[]).includes(mn)).map(p=>p.common);}
+function atRiskNow(){const mn=new Date().getMonth()+1;return PLANTS.filter(p=>(p.protect_months||[]).includes(mn)).map(p=>p.common);}
+
+function renderWeather(w, now) {
+  weatherData = w;
+  const cached = wxCache && (Date.now() - wxCacheTime) < WX_TTL && (Date.now() - wxCacheTime) > 1000;
+  const freshLabel = cached ? ' \u00b7 cached' : ' \u00b7 live';
+  document.getElementById('wCond').textContent = w.cond;
+  document.getElementById('wDate').textContent =
+    'Upper West Side, NY \u00b7 '
+    + now.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})
+    + freshLabel;
+  document.getElementById('wT').textContent  = w.t;
+  document.getElementById('wH').textContent  = w.h;
+  document.getElementById('wR').textContent  = w.r.toFixed(2);
+  document.getElementById('wUV').textContent = w.uv;
+  const extra=needsExtra(w), freeze=needsFreeze(w);
+  const el=document.getElementById('wAlert');
+  if(freeze){const risky=atRiskNow();el.innerHTML=`<div class="w-alert warn"><span>&#10052;</span><div><strong>Freezing temperatures \u2014 protect your pots.</strong> Move sensitive containers to shelter or wrap them tonight.<div class="affected-list">${risky.map(n=>`<span class="aff-chip">${n}</span>`).join('')||'<span class="aff-chip">all plants</span>'}</div></div></div>`;}
+  else if(extra){const th=thirstyNow();el.innerHTML=`<div class="w-alert warn"><span>&#9888;</span><div><strong>Extra watering needed today.</strong> ${alertReason(w)} Pots lose moisture far faster than in-ground beds.${th.length?`<div class="affected-list">${th.map(n=>`<span class="aff-chip">${n}</span>`).join('')}</div>`:''}</div></div>`;}
+  else{el.innerHTML=`<div class="w-alert ok"><span>&#10003;</span><span>Conditions look fine. Stick to your normal watering schedule.</span></div>`;}
+  addLog(now,w,extra,freeze);
+}
+
+async function checkWeather() {
+  document.getElementById('wCond').textContent = 'Fetching forecast\u2026';
+  document.getElementById('wAlert').innerHTML  = '';
+  try {
+    const w = await fetchWeather();
+    renderWeather(w, new Date());
+  } catch(err) {
+    document.getElementById('wCond').textContent = 'Could not load forecast';
+    document.getElementById('wDate').textContent = err.message;
+    document.getElementById('wAlert').innerHTML  =
+      `<div class="w-alert warn"><span>&#9888;</span><span>Open-Meteo request failed: ${err.message}. Check your internet connection and try refreshing.</span></div>`;
+  }
+}
+
+function addLog(date,w,extra,freeze){
+  const tag=freeze?'Freeze warning':extra?'Extra water needed':'No action needed';
+  const cls=(extra||freeze)?'lwarn':'lok';
+  logHistory.unshift({date,w,tag,cls});
+  if(logHistory.length>7)logHistory.pop();
+  document.getElementById('logWrap').style.display='block';
+  document.getElementById('logEntries').innerHTML=logHistory.map(l=>`<div class="log-row ${l.cls}">${l.date.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} \u2014 ${l.w.t}\u00b0F \u00b7 ${l.w.h}% RH \u00b7 ${l.w.r.toFixed(2)}" rain \u00b7 UV ${l.w.uv} &nbsp;\u00b7&nbsp; ${l.tag}</div>`).join('');
+}
+
+function buildEmailBody(w,extra,freeze){
+  const now=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const reason=freeze?`Temperatures are at or below freezing (${w.t}\u00b0F).`:alertReason(w);
+  const tips=freeze
+    ?['Move smaller pots into an unheated garage or shed tonight.','Wrap larger pots (Japanese Maple, Mock Orange, Buddleia, Clematis, Knock Out Rose, Campsis, Boston Ivy) with burlap or bubble wrap.','Do not water today \u2014 wet soil freezes harder than dry soil.']
+    :['Water all pots slowly and deeply until water drains freely from the bottom.',`Pay extra attention to: ${thirstyNow().join(', ')||'all plants'} \u2014 these need the most water in current conditions.`,'Consider moving pots to morning-sun/afternoon-shade to reduce evaporation.','Check pots again tomorrow morning \u2014 they may need another watering if temperatures stay high.'];
+  return`Hi there,\n\nToday\u2019s garden check for ${now} has triggered an alert.\n\nConditions: ${w.t}\u00b0F \u00b7 ${w.h}% humidity \u00b7 ${w.r.toFixed(2)}" rain \u00b7 UV index ${w.uv}\n${reason}\n\nWhat to do today:\n${tips.map((t,i)=>`${i+1}. ${t}`).join('\n')}\n\nYour plants: ${PLANTS.map(p=>p.common).join(', ')}.\n\nHappy gardening!`;
+}
+
+function setStatus(html,cls){const e=document.getElementById('emailStatus');e.innerHTML=html;e.className=cls||'';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+
+async function testAlert(){
+  const email=document.getElementById('emailInput').value.trim();
+  if(!email){setStatus('Please enter your email address first.','err');return;}
+  setStatus('Fetching current conditions\u2026','');
+  try {
+    const w=await fetchWeather();
+    const body=buildEmailBody(w,needsExtra(w),needsFreeze(w));
+    setStatus(`<strong style="color:var(--moss)">Email composed</strong> \u2014 would be sent to ${esc(email)}:<div class="email-preview">${esc(body)}</div><div class="hint">To send real emails, integrate SendGrid or Mailgun and call their API with this content.</div>`,'');
+  } catch(err) {
+    setStatus(`Could not fetch weather: ${err.message}`,'err');
+  }
+}
+
+async function simulateDaily(){
+  setStatus('Fetching current conditions\u2026','');
+  try {
+    await checkWeather();
+    const w=weatherData,extra=needsExtra(w),freeze=needsFreeze(w);
+    const email=document.getElementById('emailInput').value.trim();
+    if(!extra&&!freeze){setStatus('Daily check complete \u2014 conditions normal, no alert needed today.','ok');return;}
+    const body=buildEmailBody(w,extra,freeze);
+    const label=freeze?'\u2744 Freeze warning triggered':'\u26a0 Extra watering alert triggered';
+    setStatus(`<strong style="color:var(--warn)">${label}</strong>${email?` \u2014 would send to ${esc(email)}`:''}:<div class="email-preview">${esc(body)}</div>`,'');
+  } catch(err) {
+    setStatus(`Could not fetch weather: ${err.message}`,'err');
+  }
+}
+
+renderGrid();
+checkWeather();
+</script>
+</body>
+</html>
